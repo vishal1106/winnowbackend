@@ -1,0 +1,38 @@
+{
+  "name": "ecommerce-app-2023",
+  "version": "1.0.0",
+  "description": "ecommerce rest api",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "server": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "jirukshatech",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "colors": "^1.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-formidable": "^1.2.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.8.4",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.20",
+    "react-icons": "^4.7.1",
+    "slugify": "^1.6.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rabi3421/Winnow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Rabi3421/Winnow/issues"
+  },
+  "homepage": "https://github.com/Rabi3421/Winnow#readme",
+  "react-icons": "^4.7.1",
+  "slugify": "^1.6.6"
+}

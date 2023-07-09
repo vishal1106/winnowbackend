@@ -7,7 +7,14 @@ import JWT from "jsonwebtoken";
 export const registerController = async (req, res) => {
   console.log(req.body);
   try {
-    const { name, email, password, phone, address, answer } = req.body;
+    const {
+      name,
+      email,
+      password,
+      phone,
+      // address,
+      //  answer
+    } = req.body;
     //validations
     if (!name) {
       return res.send({ error: "Name is Required" });
@@ -21,12 +28,12 @@ export const registerController = async (req, res) => {
     if (!phone) {
       return res.send({ message: "Phone no is Required" });
     }
-    if (!address) {
-      return res.send({ message: "Address is Required" });
-    }
-    if (!answer) {
-      return res.send({ message: "Answer is Required" });
-    }
+    // if (!address) {
+    //   return res.send({ message: "Address is Required" });
+    // }
+    // if (!answer) {
+    //   return res.send({ message: "Answer is Required" });
+    // }
     //check user
     const exisitingUser = await userModel.findOne({ email });
     //exisiting user
@@ -43,9 +50,9 @@ export const registerController = async (req, res) => {
       name,
       email,
       phone,
-      address,
+      // address,
       password: hashedPassword,
-      answer,
+      // answer,
     }).save();
 
     res.status(201).send({
@@ -93,7 +100,7 @@ export const loginController = async (req, res) => {
     const token = await JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
-    console.log(token)
+    console.log(token);
     res.status(200).send({
       success: true,
       message: "login successfully",
@@ -116,7 +123,40 @@ export const loginController = async (req, res) => {
     });
   }
 };
-
+//update prfole
+export const updateProfileController = async (req, res) => {
+  try {
+    const { name, email, password, address, phone } = req.body;
+    const user = await userModel.findById(req.user._id);
+    //password
+    if (password && password.length < 6) {
+      return res.json({ error: "Passsword is required and 6 character long" });
+    }
+    const hashedPassword = password ? await hashPassword(password) : undefined;
+    const updatedUser = await userModel.findByIdAndUpdate(
+      req.user._id,
+      {
+        name: name || user.name,
+        password: hashedPassword || user.password,
+        phone: phone || user.phone,
+        address: address || user.address,
+      },
+      { new: true }
+    );
+    res.status(200).send({
+      success: true,
+      message: "Profile Updated SUccessfully",
+      updatedUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({
+      success: false,
+      message: "Error WHile Update profile",
+      error,
+    });
+  }
+};
 //forgotPasswordController
 
 export const forgotPasswordController = async (req, res) => {
@@ -166,23 +206,25 @@ export const testController = (req, res) => {
   }
 };
 
-//update prfole
-export const updateProfileController = async (req, res) => {
+export const updateAdminProfileController = async (req, res) => {
   try {
-    const { name, email, password, address, phone } = req.body;
-    const user = await userModel.findById(req.user._id);
+    const { name, email, password, address, phone, role } = req.body;
+    console.log(req.body);
+    const user = await userModel.find({ email });
     //password
+
     if (password && password.length < 6) {
       return res.json({ error: "Passsword is required and 6 character long" });
     }
     const hashedPassword = password ? await hashPassword(password) : undefined;
-    const updatedUser = await userModel.findByIdAndUpdate(
-      req.user._id,
+    const updatedUser = await userModel.findOneAndUpdate(
+      { email: email },
       {
         name: name || user.name,
         password: hashedPassword || user.password,
         phone: phone || user.phone,
         address: address || user.address,
+        role: role || user.role,
       },
       { new: true }
     );
@@ -200,25 +242,43 @@ export const updateProfileController = async (req, res) => {
     });
   }
 };
-//update Wallet Account
+
 export const updateWalletAccount = async (req, res) => {
   try {
-    const { email, walletamount } = req.body;
+    const { email, walletamount, reason } = req.body;
+
     const user = await userModel.find({ email });
-    //password
 
     if (user) {
       let newwalletamount = user[0].walletamount + Number(walletamount);
-      let data = await userModel.findOneAndUpdate(
-        { email: email },
-        { walletamount: newwalletamount },
+
+      const currentDate = new Date();
+      const timestamp = {
+        isAdd: true,
+        date: currentDate.toLocaleDateString(),
+        time: currentDate.toLocaleTimeString(),
+      };
+
+      const newWalletObject = {
+        reason,
+        walletamount: Number(walletamount),
+        timestamp,
+      };
+
+      let updatedUser = await userModel.findOneAndUpdate(
+        { email },
+
+        {
+          $set: { walletamount: newwalletamount },
+          $push: { walletHistory: newWalletObject },
+        },
         { new: true }
       );
-      
+
       res.status(200).send({
         success: true,
-        message: "amount is added Successfully",
-        data,
+        message: "Amount added successfully",
+        data: updatedUser,
       });
     } else {
       res.status(404).send({
@@ -230,7 +290,95 @@ export const updateWalletAccount = async (req, res) => {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: "Error WHile Update Wallet",
+      message: "Error while updating wallet",
+      error,
+    });
+  }
+};
+
+// Deduct the money from wallet
+// export const updateWalletDeduct = async (req, res) => {
+//   try {
+//     const { email, walletamount } = req.body;
+//     const user = await userModel.find({ email });
+//     //password
+
+//     if (user && walletamount <=user.walletamount) {
+//       let newwalletamount = user[0].walletamount - Number(walletamount);
+//       let data = await userModel.findOneAndUpdate(
+//         { email: email },
+//         { walletamount: newwalletamount },
+//         { new: true }
+//       );
+
+//       res.status(200).send({
+//         success: true,
+//         message: "amount is added Successfully",
+//         data,
+//       });
+//     } else {
+//       res.status(404).send({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(400).send({
+//       success: false,
+//       message: "Error WHile Update Wallet",
+//       error,
+//     });
+//   }
+// };
+export const updateWalletDeduct = async (req, res) => {
+  try {
+    const { email, walletamount, reason } = req.body;
+
+    const user = await userModel.find({ email });
+
+    if (user && walletamount <= user[0].walletamount) {
+      let newwalletamount = user[0].walletamount - Number(walletamount);
+      console.log(newwalletamount);
+      const currentDate = new Date();
+      const timestamp = {
+        isAdd: false,
+        date: currentDate.toLocaleDateString(),
+        time: currentDate.toLocaleTimeString(),
+      };
+
+      const newWalletObject = {
+        reason,
+        walletamount: Number(walletamount),
+        timestamp,
+      };
+
+      let updatedUser = await userModel.findOneAndUpdate(
+        { email },
+
+        {
+          $set: { walletamount: newwalletamount },
+          $push: { walletHistory: newWalletObject },
+        },
+        { new: true }
+      );
+
+      res.status(200).send({
+        success: true,
+        message: "Amount added successfully",
+        data: updatedUser,
+      });
+    } else {
+      res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({
+      success: false,
+      message: "Error while updating wallet",
       error,
     });
   }
@@ -302,21 +450,20 @@ export const orderStatusController = async (req, res) => {
   }
 };
 
-
-export const DeleteUsers=async(req,res)=>{
-  const { id } = req.params
-  console.log(id)
+export const DeleteUsers = async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
   try {
-    const data=await userModel.findByIdAndDelete({_id:id})
+    const data = await userModel.findByIdAndDelete({ _id: id });
     res.status(200).send({
-      success:true,
-      massage:"User Deleted Successfully",
+      success: true,
+      massage: "User Deleted Successfully",
       data,
-    })
+    });
   } catch (error) {
     res.send(500).send({
-      success:false,
-      massage:"Error while Delete the user"
-    })
+      success: false,
+      massage: "Error while Delete the user",
+    });
   }
-}
+};

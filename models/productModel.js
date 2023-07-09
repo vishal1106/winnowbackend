@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema(
   {
@@ -6,15 +6,19 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    slug: {
-      type: String,
+    funded: {
+      type: Number,
       required: true,
     },
-    description: {
-      type: String,
+    backers: {
+      type: Number,
       required: true,
     },
-    price: {
+    totalFund: {
+      type: Number,
+      required: true,
+    },
+    fundRaised:{
       type: Number,
       required: true,
     },
@@ -23,16 +27,9 @@ const productSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
-    quantity: {
-      type: Number,
-      required: true,
-    },
     photo: {
-      data: Buffer,
-      contentType: String,
-    },
-    shipping: {
-      type: Boolean,
+      type: String,
+      required: true,
     },
   },
   { timestamps: true }

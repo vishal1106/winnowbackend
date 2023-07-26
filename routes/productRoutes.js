@@ -75,7 +75,16 @@ router.post("/register",upload.single("photo"),async(req,res)=>{
             funded,
             totalFund,
             fundRaised,
-            categories
+            categories,
+            assetvalue,
+            minInvestment,
+            rentalYield,
+            targetMultiple,
+            targetIRR,
+            locationName,
+            locationDesc,
+            overview,
+            tenancy
         });
 
         const finaldata = await userdata.save();

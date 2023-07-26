@@ -61,7 +61,7 @@ export const getProductController = async (req, res) => {
 // get single product
 export const getSingleProductController = async (req, res) => {
   try {
-    const product = await productModel
+    const product = await createProductModels
       .findOne({ slug: req.params.slug })
       .select("-photo")
       .populate("categories");
